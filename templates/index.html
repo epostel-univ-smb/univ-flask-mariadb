@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Affichage des données</title>
+</head>
+<body>
+    <h1>Affichage des données</h1>
+    <table border="1">
+        <tr>
+            <!-- Mettre ici les en-têtes de colonnes selon votre table -->
+            <th>Colonne 1</th>
+            <th>Colonne 2</th>
+            <!-- Ajouter d'autres en-têtes si nécessaire -->
+        </tr>
+        {% for row in rows %}
+        <tr>
+            {% for cell in row %}
+            <td>{{ cell }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
