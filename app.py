@@ -1,44 +1,36 @@
 from flask import Flask, render_template
-import mariadb
+from flask_sqlalchemy import SQLAlchemy
 
 class DatabaseApp:
-    def __init__(self, host='127.0.0.1', port=3306, user='root', password='votre_mot_de_passe', database='votre_base_de_donnees'):
+    def __init__(self, host='127.0.0.1', user='votre_utilisateur', password='votre_mot_de_passe', database='votre_base_de_donnees'):
         self.host = host
-        self.port = port
         self.user = user
         self.password = password
         self.database = database
         self.app = Flask(__name__)
-        self.config = {
-            'host': self.host,
-            'port': self.port,
-            'user': self.user,
-            'password': self.password,
-            'database': self.database
-        }
+        self.app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{self.user}:{self.password}@{self.host}/{self.database}'
+        self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        self.db = SQLAlchemy(self.app)
+        self.init_models()
         self.init_routes()
+
+    def init_models(self):
+        class VotreTable(self.db.Model):
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            colonne1 = self.db.Column(self.db.String(100), nullable=False)
+            colonne2 = self.db.Column(self.db.String(100), nullable=False)
+
+            def __repr__(self):
+                return f'<VotreTable {self.colonne1}>'
+        self.VotreTable = VotreTable
 
     def init_routes(self):
         @self.app.route('/')
         def index():
-            try:
-                rows = self.get_data_from_db()
+            with self.app.app_context():
+                self.db.create_all()
+                rows = self.VotreTable.query.all()
                 return render_template('index.html', rows=rows)
-            except mariadb.Error as e:
-                print(f"Erreur lors de la connexion à la base de données : {e}")
-                return "Erreur lors de la connexion à la base de données"
-
-    def get_data_from_db(self):
-        try:
-            conn = mariadb.connect(**self.config)
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM votre_table")
-            rows = cur.fetchall()
-            conn.close()
-            return rows
-        except mariadb.Error as e:
-            print(f"Erreur lors de la récupération des données : {e}")
-            return []
 
     def run(self):
         self.app.run(debug=True)
@@ -46,8 +38,7 @@ class DatabaseApp:
 if __name__ == "__main__":
     app = DatabaseApp(
         host='127.0.0.1',
-        port=3306,
-        user='root',
+        user='votre_utilisateur',
         password='votre_mot_de_passe',
         database='votre_base_de_donnees'
     )
